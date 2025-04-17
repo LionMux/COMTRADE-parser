@@ -1,20 +1,22 @@
-﻿using static ParseCFG;
+﻿using System.Collections.Generic;
+using static ParseCFG;
 
 namespace COMTRADE_parser.SelectSignal
 {
     internal class Currents 
     {
         private readonly IDataReader _dataReader;
-        private List<int> _currentChannelIndexes;
+        private List<int> _currentChannelIndexes = new List<int>();
 
         public Currents(IDataReader dataReader)
         {
             _dataReader = dataReader;
         }
 
-        public List<AnalogChannelConfig> CFGCurrnet()
+        public List<AnalogChannelConfig> GetCurrnetCFG()
         {
             List<AnalogChannelConfig> cfgCurrents = new List<AnalogChannelConfig>();
+
             for (int i = 0; i < _dataReader.Config.AnalogChannels.Count; i++)
             {
                 var channel = _dataReader.Config.AnalogChannels[i];

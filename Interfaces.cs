@@ -12,10 +12,10 @@ namespace COMTRADE_parser
         List<List<bool>> ParseDiscreteData(string filePath, ComtradeConfig config);
     }
 
-    public interface IDataExporter
-    {
-        void ExportToCsv(ComtradeConfig config, List<List<double>> analogData, List<List<bool>> discreteData, string outputPath);
-    }
+    //public interface IDataExporter
+    //{
+    //    void ExportToCsv(ComtradeConfig config, List<List<double>> analogData, List<List<bool>> discreteData, string outputPath);
+    //}
 
     public interface IDataReader
     {
