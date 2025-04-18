@@ -25,18 +25,17 @@ namespace COMTRADE_parser
             //var discreteData = datParser.ParseDiscreteData("25_newRTDS.dat", config);
 
             // Экспорт в CSV
-            CsvExporter csvExporter = new CsvExporter();
+
             Currents currents = new Currents(new Reader("25_newRTDS.cfg", "25_newRTDS.dat"));
             var calculator = new SymmetricComponents(currents.GetCurrnetCFG(), currents.GetCurrentsData());
             List<List<double>> I0Data = calculator.CalculateI0();
-            csvExporter.ExportI0ToCsv("I0_Results.csv", I0Data);
+            List<List<double>> IData = currents.GetCurrentsData();
+            //CsvExporter.ExportToCsv("i0_results.csv", I0Data, samplingRate: 10000);
+            CsvExporter.ExportToCsv("i_results.csv", IData, samplingRate: 10000);
+            // Выведите первые 5 значений каждой группы
+            //Console.WriteLine("Group 1: " + string.Join(", ", I0Data[0].Take(5)));
+            //Console.WriteLine("Group 2: " + string.Join(", ", I0Data[1].Take(5)));
 
-            //exporter.ExportToCsv(config, analogData, discreteData, "output.csv");
-
-            //foreach (var data in analogData)
-            //{
-            //    Console.WriteLine(data[0]);
-            //}
         }
     }
 }

@@ -1,41 +1,74 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.Text;
-using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace COMTRADE_parser.Export
 {
     public class CsvExporter
     {
-        public static void ExportI0ToCsv(string filePath, List<List<double>> I0Data, double samplingRate = 1000)
+        /// <summary>
+        /// Экспортирует данные в CSV с вертикальным расположением сигналов (каждый сигнал в отдельном столбце)
+        /// </summary>
+        /// <param name="filePath">Путь к файлу</param>
+        /// <param name="data">Данные в формате: List<List<double>> где каждый внутренний список - значения всех сигналов в один момент времени</param>
+        /// <param name="samplingRate">Частота дискретизации (Гц)</param>
+        /// <param name="decimalSeparator">Разделитель десятичных знаков</param>
+        public static void ExportToCsv(string filePath, List<List<double>> data, double samplingRate = 1000, string decimalSeparator = ".")
         {
-            if (I0Data == null || I0Data.Count == 0)
+            if (data == null || data.Count == 0)
+            {
                 throw new ArgumentException("Нет данных для экспорта");
+            }
 
-            // Проверяем одинаковое ли количество сэмплов во всех группах
-            int sampleCount = I0Data[0].Count;
-            if (I0Data.Any(group => group.Count != sampleCount))
-                throw new InvalidDataException("Разное количество сэмплов в группах");
+            // Настройка культуры для форматирования чисел
+            var culture = decimalSeparator == "," ? CultureInfo.GetCultureInfo("ru-RU") : CultureInfo.GetCultureInfo("en-US");
+            double timeStep = 1.0 / samplingRate;
+
+            // Проверяем, что все подсписки имеют одинаковую длину
+            int signalCount = data[0].Count;
+            if (data.Any(sublist => sublist.Count != signalCount))
+            {
+                throw new ArgumentException("Все подсписки данных должны иметь одинаковую длину");
+            }
 
             using (var writer = new StreamWriter(filePath, false, Encoding.UTF8))
             {
-                // Заголовок CSV
-                writer.Write("Time(sec)");
-                for (int i = 0; i < I0Data.Count; i++)
+                // Заголовок - время + номера сигналов
+                var headers = new List<string> { "Time(sec)" };
+                for (int i = 0; i < signalCount; i++)
                 {
-                    writer.Write($",Group_{i + 1}_I0");
+                    headers.Add($"Signal_{i + 1}");
                 }
-                writer.WriteLine();
+                writer.WriteLine(string.Join(",", headers));
 
-                // Данные
-                double timeStep = 1.0 / samplingRate;
-                for (int i = 0; i < sampleCount; i++)
+                // Транспонируем данные: из строк-моментов времени делаем столбцы-сигналы
+                var signals = new List<List<double>>();
+                for (int signalIndex = 0; signalIndex < signalCount; signalIndex++)
                 {
-                    writer.Write($"{i * timeStep:0.00000}");
-                    foreach (var group in I0Data)
+                    var signalValues = new List<double>();
+                    for (int timeIndex = 0; timeIndex < data.Count; timeIndex++)
                     {
-                        writer.Write($",{group[i]:0.00000}");
+                        signalValues.Add(data[timeIndex][signalIndex]);
                     }
-                    writer.WriteLine();
+                    signals.Add(signalValues);
+                }
+
+                // Записываем данные построчно
+                for (int i = 0; i < data.Count; i++)
+                {
+                    var lineParts = new List<string>
+                    {
+                        (i * timeStep).ToString("0.00000", culture)
+                    };
+
+                    // Добавляем значения всех сигналов для текущего момента времени
+                    for (int signalIndex = 0; signalIndex < signalCount; signalIndex++)
+                    {
+                        lineParts.Add(signals[signalIndex][i].ToString("0.00000", culture));
+                    }
+
+                    writer.WriteLine(string.Join(",", lineParts));
                 }
             }
         }

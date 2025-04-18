@@ -18,6 +18,8 @@ namespace COMTRADE_parser
             IDatParser datParser = new AsciiDatParser();
             AnalogData = datParser.ParseAnalogData(datPath, Config);
             DiscreteData = datParser.ParseDiscreteData(datPath, Config);
+
+
         }
     }
 }
